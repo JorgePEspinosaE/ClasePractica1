@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Interactiva de R para Biólogos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals & Green -->
+    <!-- Application Structure Plan: A single-page application with a fixed top navigation bar to switch between thematic modules (Inicio, Entorno, Manipular, Visualizar, Analizar). This non-linear, task-oriented structure allows beginner users to jump directly to the topic they need, such as "how to make a chart" or "how to filter data". Each module uses interactive elements (clickable diagrams, code/output toggles) to connect concepts to results, which is more effective for learning than a static text document. The goal is to create an active learning tool, not just a passive reading experience. -->
+    <!-- Visualization & Content Choices: 
+        - Why R?: Goal=Inform. Method=Icon+Text cards. Interaction=None. Justification=Clear, concise value proposition.
+        - RStudio IDE: Goal=Organize/Inform. Method=HTML/CSS grid diagram. Interaction=Click on panel to show description. Justification=Visually explains the tool's layout without overwhelming the user.
+        - dplyr Verbs: Goal=Compare/Inform. Method=Buttons to switch content, showing code and HTML tables for before/after. Interaction=Click to update display. Justification=Directly shows the effect of each function on data, which is crucial for understanding data manipulation.
+        - ggplot2 Charts: Goal=Compare/Explore. Method=Buttons to switch charts, rendering a Chart.js canvas. Interaction=Click to render chart and show code. Justification=Connects the abstract `ggplot2` code to a concrete visual output. Chart.js is used for dynamic rendering on canvas. NO SVG/Mermaid.
+        - Statistical Tests: Goal=Organize/Inform. Method=Accordion. Interaction=Click to expand. Justification=Groups complex info into digestible chunks, answering "what test to use for my question?".
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDFBF5; color: #3D405B; }
+        .nav-item { transition: all 0.2s ease-in-out; }
+        .nav-item.active, .nav-item:hover { color: #81B29A; background-color: #F4F1EA; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .control-button { transition: all 0.2s ease-in-out; border: 1px solid #D6D3C8; }
+        .control-button.active, .control-button:hover { background-color: #81B29A; color: white; border-color: #81B29A; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 450px; }
+        .code-block { background-color: #282c34; color: #abb2bf; font-family: monospace; }
+        .table-container { max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10">
+        <nav class="container mx-auto px-4 py-2">
+            <ul class="flex items-center justify-center space-x-2 md:space-x-4 overflow-x-auto">
+                <li><button data-target="inicio" class="nav-item active font-semibold whitespace-nowrap px-4 py-2 rounded-lg">🏠 Inicio</button></li>
+                <li><button data-target="entorno" class="nav-item font-semibold whitespace-nowrap px-4 py-2 rounded-lg">🖥️ Entorno</button></li>
+                <li><button data-target="manipular" class="nav-item font-semibold whitespace-nowrap px-4 py-2 rounded-lg">🔧 Manipular</button></li>
+                <li><button data-target="visualizar" class="nav-item font-semibold whitespace-nowrap px-4 py-2 rounded-lg">📊 Visualizar</button></li>
+                <li><button data-target="analizar" class="nav-item font-semibold whitespace-nowrap px-4 py-2 rounded-lg">🔬 Analizar</button></li>
+                <li><button data-target="recursos" class="nav-item font-semibold whitespace-nowrap px-4 py-2 rounded-lg">📚 Recursos</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 md:py-12">
+        
+        <section id="inicio" class="content-section active text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#3D405B] mb-4">R para Biólogos: Tu Laboratorio de Datos</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-10">Una guía interactiva para profesionales de ciencias biológicas que empiezan desde cero. Descubre cómo R y RStudio pueden transformar tu investigación, haciendo tu análisis más potente, reproducible y eficiente.</p>
+            <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-2xl font-bold text-[#81B29A] mb-2">Potencia Analítica</h3>
+                    <p class="text-gray-600">Maneja grandes volúmenes de datos, realiza análisis estadísticos complejos y explora tus resultados con herramientas especializadas.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-2xl font-bold text-[#81B29A] mb-2">Ciencia Reproducible</h3>
+                    <p class="text-gray-600">Documenta cada paso de tu análisis con scripts. Asegura que tus resultados puedan ser verificados y replicados por ti y por otros.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-2xl font-bold text-[#81B29A] mb-2">Comunidad Global</h3>
+                    <p class="text-gray-600">Accede a miles de paquetes y obtén ayuda de una comunidad activa de desarrolladores y científicos de todo el mundo.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="entorno" class="content-section">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#3D405B]">El Entorno de RStudio</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">RStudio organiza tu flujo de trabajo en cuatro paneles principales. Haz clic en cada uno para saber más.</p>
+            </div>
+            <div class="max-w-4xl mx-auto p-4 bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 h-[60vh] md:h-[70vh]">
+                    <div class="flex flex-col gap-2">
+                        <div id="panel-source" class="ide-panel flex-grow bg-[#F4F1EA] rounded-lg p-4 relative cursor-pointer flex items-center justify-center">
+                            <span class="text-xl font-bold text-[#3D405B]">Editor de Scripts</span>
+                        </div>
+                        <div id="panel-console" class="ide-panel h-1/3 bg-[#F4F1EA] rounded-lg p-4 relative cursor-pointer flex items-center justify-center">
+                             <span class="text-xl font-bold text-[#3D405B]">Consola</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div id="panel-environment" class="ide-panel h-1/2 bg-[#F4F1EA] rounded-lg p-4 relative cursor-pointer flex items-center justify-center">
+                            <span class="text-xl font-bold text-[#3D405B]">Entorno / Variables</span>
+                        </div>
+                        <div id="panel-files" class="ide-panel flex-grow bg-[#F4F1EA] rounded-lg p-4 relative cursor-pointer flex items-center justify-center">
+                            <span class="text-xl font-bold text-[#3D405B]">Archivos / Gráficos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="ide-tooltip" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-4 rounded-lg shadow-2xl max-w-sm text-center hidden z-20">
+                <h4 id="tooltip-title" class="font-bold text-lg mb-2"></h4>
+                <p id="tooltip-text"></p>
+                <button id="close-tooltip" class="mt-4 text-sm text-gray-300">Cerrar</button>
+            </div>
+        </section>
+
+        <section id="manipular" class="content-section">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#3D405B]">Manipulación de Datos con `dplyr`</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">`dplyr` simplifica la preparación de datos con "verbos" intuitivos. Selecciona una función para ver un ejemplo de cómo transforma una tabla de datos biológicos.</p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/4">
+                    <div class="flex flex-row md:flex-col gap-2 overflow-x-auto pb-2">
+                        <button data-verb="filter" class="control-button active w-full text-left p-3 rounded-lg font-semibold">filter()</button>
+                        <button data-verb="select" class="control-button w-full text-left p-3 rounded-lg font-semibold">select()</button>
+                        <button data-verb="mutate" class="control-button w-full text-left p-3 rounded-lg font-semibold">mutate()</button>
+                        <button data-verb="arrange" class="control-button w-full text-left p-3 rounded-lg font-semibold">arrange()</button>
+                        <button data-verb="summarise" class="control-button w-full text-left p-3 rounded-lg font-semibold">summarise()</button>
+                    </div>
+                </div>
+                <div class="w-full md:w-3/4 bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 id="verb-title" class="text-2xl font-bold text-[#81B29A] mb-2"></h3>
+                    <p id="verb-description" class="text-gray-600 mb-4"></p>
+                    <div id="verb-code" class="code-block p-4 rounded-lg text-sm mb-4"></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-bold mb-2">Antes:</h4>
+                            <div id="table-before" class="table-container border rounded-lg p-2"></div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-2">Después:</h4>
+                            <div id="table-after" class="table-container border rounded-lg p-2 bg-green-50"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualizar" class="content-section">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#3D405B]">Visualización de Datos con `ggplot2`</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">`ggplot2` crea gráficos de alta calidad capa por capa. Elige un tipo de gráfico para ver su código y aplicación en biología.</p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/4">
+                    <div class="flex flex-row md:flex-col gap-2 overflow-x-auto pb-2">
+                        <button data-chart="scatter" class="control-button active w-full text-left p-3 rounded-lg font-semibold">Diagrama de Dispersión</button>
+                        <button data-chart="boxplot" class="control-button w-full text-left p-3 rounded-lg font-semibold">Diagrama de Caja</button>
+                        <button data-chart="histogram" class="control-button w-full text-left p-3 rounded-lg font-semibold">Histograma</button>
+                        <button data-chart="heatmap" class="control-button w-full text-left p-3 rounded-lg font-semibold">Mapa de Calor</button>
+                    </div>
+                </div>
+                <div class="w-full md:w-3/4 bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 id="chart-title" class="text-2xl font-bold text-[#81B29A] mb-2"></h3>
+                    <p id="chart-description" class="text-gray-600 mb-4"></p>
+                    <div class="chart-container mb-4">
+                        <canvas id="chartCanvas"></canvas>
+                    </div>
+                    <div id="chart-code" class="code-block p-4 rounded-lg text-sm"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="analizar" class="content-section">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#3D405B]">Pruebas Estadísticas Básicas</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">R es una potente herramienta para la estadística. Aquí tienes un resumen de las pruebas más comunes para responder preguntas biológicas.</p>
+            </div>
+            <div class="max-w-3xl mx-auto space-y-4">
+                <div class="accordion-item bg-white border border-gray-200 rounded-lg">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
+                        <span>Prueba t (T-test)</span>
+                        <span class="text-xl">▼</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200">
+                        <p class="font-bold text-gray-700">Pregunta: ¿Son las medias de dos grupos significativamente diferentes?</p>
+                        <p class="mt-2 text-gray-600">Ejemplo: Comparar el nivel de expresión de un gen entre un grupo control y uno tratado.</p>
+                        <div class="code-block p-4 rounded-lg text-sm mt-4">t.test(expresion ~ grupo, data = mis_datos)</div>
+                    </div>
+                </div>
+                <div class="accordion-item bg-white border border-gray-200 rounded-lg">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
+                        <span>ANOVA</span>
+                        <span class="text-xl">▼</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200">
+                        <p class="font-bold text-gray-700">Pregunta: ¿Son las medias de tres o más grupos diferentes?</p>
+                        <p class="mt-2 text-gray-600">Ejemplo: Comparar el rendimiento de un cultivo con tres tipos de fertilizantes.</p>
+                        <div class="code-block p-4 rounded-lg text-sm mt-4">modelo_anova <- aov(rendimiento ~ fertilizante, data = mis_datos)
+summary(modelo_anova)</div>
+                    </div>
+                </div>
+                <div class="accordion-item bg-white border border-gray-200 rounded-lg">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
+                        <span>Correlación</span>
+                        <span class="text-xl">▼</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200">
+                        <p class="font-bold text-gray-700">Pregunta: ¿Existe una relación lineal entre dos variables numéricas?</p>
+                        <p class="mt-2 text-gray-600">Ejemplo: Evaluar si la altura de una planta se relaciona con la biomasa que produce.</p>
+                        <div class="code-block p-4 rounded-lg text-sm mt-4">cor.test(mis_datos$altura, mis_datos$biomasa)</div>
+                    </div>
+                </div>
+                 <div class="accordion-item bg-white border border-gray-200 rounded-lg">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
+                        <span>Regresión Lineal</span>
+                        <span class="text-xl">▼</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200">
+                        <p class="font-bold text-gray-700">Pregunta: ¿Podemos predecir el valor de una variable a partir de otra?</p>
+                        <p class="mt-2 text-gray-600">Ejemplo: Predecir la actividad de una enzima basándose en la concentración de su sustrato.</p>
+                        <div class="code-block p-4 rounded-lg text-sm mt-4">modelo_reg <- lm(actividad ~ concentracion, data = mis_datos)
+summary(modelo_reg)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recursos" class="content-section">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#3D405B]">Recursos y Próximos Pasos</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mt-2">El aprendizaje de R es un viaje. Aquí tienes algunos recursos para continuar tu desarrollo.</p>
+            </div>
+            <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <ul class="space-y-4 list-disc list-inside text-gray-700">
+                    <li><strong>DataCamp:</strong> Cursos interactivos para ciencia de datos con R.</li>
+                    <li><strong>R for Data Science:</strong> Un libro en línea gratuito que profundiza en el `tidyverse`.</li>
+                    <li><strong>Bioconductor:</strong> Un proyecto con cientos de paquetes de R para el análisis de datos genómicos.</li>
+                    <li><strong>Stack Overflow:</strong> Un foro para hacer preguntas y encontrar soluciones a problemas de código.</li>
+                    <li><strong>R-bloggers:</strong> Una agregación de blogs sobre R de toda la comunidad.</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const navButtons = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        function switchTab(targetId) {
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            const targetSection = document.getElementById(targetId);
+            const targetButton = document.querySelector(`.nav-item[data-target="${targetId}"]`);
+            if (targetSection) targetSection.classList.add('active');
+            if (targetButton) targetButton.classList.add('active');
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                switchTab(button.dataset.target);
+            });
+        });
+
+        // RStudio IDE Panel Logic
+        const idePanels = document.querySelectorAll('.ide-panel');
+        const tooltip = document.getElementById('ide-tooltip');
+        const tooltipTitle = document.getElementById('tooltip-title');
+        const tooltipText = document.getElementById('tooltip-text');
+        const closeTooltip = document.getElementById('close-tooltip');
+        
+        const panelInfo = {
+            'panel-source': { title: 'Editor de Scripts', text: 'Aquí escribes, editas y guardas tu código de R. Permite trabajar en análisis complejos y guardarlos para asegurar la reproducibilidad.' },
+            'panel-console': { title: 'Consola', text: 'El "cerebro" de R. Aquí se ejecutan los comandos y se muestran los resultados. Puedes escribir código aquí para pruebas rápidas.' },
+            'panel-environment': { title: 'Entorno', text: 'Muestra todos los objetos (variables, datos, funciones) que has creado en tu sesión actual. Te permite ver qué datos tienes cargados.' },
+            'panel-files': { title: 'Archivos y Gráficos', text: 'Un panel multifunción para explorar archivos en tu computadora, ver los gráficos que generas, instalar paquetes y acceder a la ayuda.' }
+        };
+
+        idePanels.forEach(panel => {
+            panel.addEventListener('click', () => {
+                const info = panelInfo[panel.id];
+                tooltipTitle.textContent = info.title;
+                tooltipText.textContent = info.text;
+                tooltip.classList.remove('hidden');
+            });
+        });
+        closeTooltip.addEventListener('click', () => tooltip.classList.add('hidden'));
+
+        // Manipulate Section Logic
+        const verbButtons = document.querySelectorAll('#manipular .control-button');
+        const verbTitle = document.getElementById('verb-title');
+        const verbDescription = document.getElementById('verb-description');
+        const verbCode = document.getElementById('verb-code');
+        const tableBefore = document.getElementById('table-before');
+        const tableAfter = document.getElementById('table-after');
+        
+        const sampleData = [
+            { id: 'gen_A', expresion: 120.5, tejido: 'higado', significativo: true },
+            { id: 'gen_B', expresion: 89.1, tejido: 'cerebro', significativo: false },
+            { id: 'gen_C', expresion: 201.3, tejido: 'higado', significativo: true },
+            { id: 'gen_D', expresion: 45.0, tejido: 'cerebro', significativo: false },
+            { id: 'gen_E', expresion: 155.0, tejido: 'higado', significativo: true },
+        ];
+        
+        function createTable(data) {
+            const headers = Object.keys(data[0]);
+            let tableHTML = '<table class="w-full text-sm text-left"><thead><tr class="bg-gray-100">';
+            headers.forEach(h => tableHTML += `<th class="p-2">${h}</th>`);
+            tableHTML += '</tr></thead><tbody>';
+            data.forEach(row => {
+                tableHTML += '<tr class="border-b">';
+                headers.forEach(h => tableHTML += `<td class="p-2">${row[h]}</td>`);
+                tableHTML += '</tr>';
+            });
+            tableHTML += '</tbody></table>';
+            return tableHTML;
+        }
+
+        const verbData = {
+            filter: {
+                title: 'filter()',
+                description: 'Selecciona filas basadas en una o más condiciones lógicas.',
+                code: 'datos %>% filter(tejido == "higado" & expresion > 150)',
+                transform: data => data.filter(d => d.tejido === 'higado' && d.expresion > 150)
+            },
+            select: {
+                title: 'select()',
+                description: 'Elige columnas por su nombre para quedarte solo con las que necesitas.',
+                code: 'datos %>% select(id, expresion)',
+                transform: data => data.map(({ id, expresion }) => ({ id, expresion }))
+            },
+            mutate: {
+                title: 'mutate()',
+                description: 'Crea nuevas columnas o modifica las existentes. Aquí, normalizamos la expresión.',
+                code: 'datos %>% mutate(expresion_log = log(expresion))',
+                transform: data => data.map(d => ({...d, expresion_log: Math.log(d.expresion).toFixed(2) }))
+            },
+            arrange: {
+                title: 'arrange()',
+                description: 'Ordena las filas según los valores de una o más columnas.',
+                code: 'datos %>% arrange(desc(expresion))',
+                transform: data => [...data].sort((a, b) => b.expresion - a.expresion)
+            },
+            summarise: {
+                title: 'summarise()',
+                description: 'Resume los datos de un grupo en una sola fila. Usado con group_by().',
+                code: 'datos %>% group_by(tejido) %>% summarise(exp_media = mean(expresion))',
+                transform: data => {
+                    const grouped = data.reduce((acc, curr) => {
+                        if (!acc[curr.tejido]) acc[curr.tejido] = [];
+                        acc[curr.tejido].push(curr.expresion);
+                        return acc;
+                    }, {});
+                    return Object.entries(grouped).map(([tejido, expresiones]) => ({
+                        tejido,
+                        exp_media: (expresiones.reduce((a, b) => a + b, 0) / expresiones.length).toFixed(2)
+                    }));
+                }
+            }
+        };
+
+        function updateVerbContent(verb) {
+            const data = verbData[verb];
+            verbTitle.textContent = data.title;
+            verbDescription.textContent = data.description;
+            verbCode.textContent = data.code;
+            tableBefore.innerHTML = createTable(sampleData);
+            const transformedData = data.transform(sampleData);
+            tableAfter.innerHTML = createTable(transformedData.length > 0 ? transformedData : [{ 'resultado': 'Vacío' }]);
+            
+            verbButtons.forEach(b => b.classList.remove('active'));
+            document.querySelector(`#manipular .control-button[data-verb="${verb}"]`).classList.add('active');
+        }
+
+        verbButtons.forEach(button => {
+            button.addEventListener('click', () => updateVerbContent(button.dataset.verb));
+        });
+        updateVerbContent('filter');
+
+        // Visualize Section Logic
+        const chartButtons = document.querySelectorAll('#visualizar .control-button');
+        const chartTitle = document.getElementById('chart-title');
+        const chartDescription = document.getElementById('chart-description');
+        const chartCode = document.getElementById('chart-code');
+        const ctx = document.getElementById('chartCanvas').getContext('2d');
+        let myChart;
+
+        const chartData = {
+            scatter: {
+                title: 'Diagrama de Dispersión',
+                description: 'Muestra la relación entre dos variables numéricas. Ideal para ver correlaciones.',
+                code: `ggplot(datos, aes(x = dosis, y = respuesta)) + 
+    geom_point()`,
+                config: {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Dosis vs Respuesta',
+                            data: [{x: 1, y: 5}, {x: 2, y: 10}, {x: 3, y: 14}, {x: 4, y: 22}, {x: 5, y: 30}],
+                            backgroundColor: '#81B29A'
+                        }]
+                    },
+                    options: { scales: { x: { title: { display: true, text: 'Dosis (mg)' } }, y: { title: { display: true, text: 'Respuesta Biológica' } } } }
+                }
+            },
+            boxplot: {
+                title: 'Diagrama de Caja (Simulado con Barras)',
+                description: 'Compara la distribución de una variable numérica entre diferentes grupos. Aquí, las barras representan el promedio de expresión.',
+                code: `ggplot(datos, aes(x = tratamiento, y = expresion)) + 
+    geom_col()`,
+                config: {
+                    type: 'bar', // Changed to bar
+                    data: {
+                        labels: ['Control', 'Tratado A', 'Tratado B'],
+                        datasets: [{
+                            label: 'Nivel Promedio de Expresión Génica',
+                            // Calculate average for the sample data
+                            data: [
+                                (10 + 12 + 15 + 11 + 9) / 5, // Control avg
+                                (20 + 25 + 22 + 28 + 23) / 5, // Tratado A avg
+                                (18 + 20 + 15 + 22 + 19) / 5  // Tratado B avg
+                            ],
+                            backgroundColor: ['#E07A5F', '#81B29A', '#3D405B'],
+                            borderColor: 'rgba(0,0,0,0.5)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Grupo de Tratamiento'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Expresión Promedio'
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            histogram: {
+                title: 'Histograma',
+                description: 'Visualiza la distribución de frecuencia de una sola variable numérica.',
+                code: `ggplot(datos, aes(x = tamano_celula)) + 
+    geom_histogram(binwidth = 5)`,
+                config: {
+                    type: 'bar',
+                    data: {
+                        labels: ['10-15', '15-20', '20-25', '25-30', '30-35'],
+                        datasets: [{
+                            label: 'Frecuencia de Tamaño Celular (µm)',
+                            data: [8, 15, 25, 12, 5],
+                            backgroundColor: '#81B29A'
+                        }]
+                    },
+                     options: { scales: { x: { title: { display: true, text: 'Tamaño (µm)' } }, y: { title: { display: true, text: 'Frecuencia' } } } }
+                }
+            },
+            heatmap: {
+                title: 'Mapa de Calor (Simulado con Barras)',
+                description: 'Representa la magnitud de la expresión génica. Aquí simulado con un gráfico de barras agrupadas para mostrar la variabilidad entre muestras y genes.',
+                code: `ggplot(datos_largos, aes(x = muestra, y = expresion, fill = gen)) + 
+    geom_bar(stat = "identity", position = "dodge")`,
+                config: {
+                    type: 'bar',
+                    data: {
+                        labels: ['Muestra 1', 'Muestra 2', 'Muestra 3'],
+                        datasets: [
+                            {
+                                label: 'Gen A Expresión',
+                                data: [1, 1.5, 0.5],
+                                backgroundColor: '#81B29A',
+                            },
+                            {
+                                label: 'Gen B Expresión',
+                                data: [-1, -0.5, -1.2],
+                                backgroundColor: '#E07A5F',
+                            },
+                            {
+                                label: 'Gen C Expresión',
+                                data: [0.2, -0.2, 0.4],
+                                backgroundColor: '#3D405B',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Muestra'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Nivel de Expresión'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        function updateChart(chartType) {
+            const data = chartData[chartType];
+            chartTitle.textContent = data.title;
+            chartDescription.textContent = data.description;
+            chartCode.textContent = data.code;
+
+            if (myChart) {
+                myChart.destroy();
+            }
+            const config = data.config;
+            config.options = { ...config.options, responsive: true, maintainAspectRatio: false };
+            myChart = new Chart(ctx, config);
+            
+            chartButtons.forEach(b => b.classList.remove('active'));
+            document.querySelector(`#visualizar .control-button[data-chart="${chartType}"]`).classList.add('active');
+        }
+
+        chartButtons.forEach(button => {
+            button.addEventListener('click', () => updateChart(button.dataset.chart));
+        });
+        
+        // Load initial chart after a small delay to ensure canvas is ready
+        setTimeout(() => updateChart('scatter'), 100);
+
+        // Accordion for Analizar section
+        const accordionHeaders = document.querySelectorAll('.accordion-header');
+        accordionHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('span:last-child');
+                const currentlyOpen = document.querySelector('.accordion-content:not(.hidden)');
+                if (currentlyOpen && currentlyOpen !== content) {
+                    currentlyOpen.classList.add('hidden');
+                    currentlyOpen.previousElementSibling.querySelector('span:last-child').textContent = '▼';
+                }
+                content.classList.toggle('hidden');
+                icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
+            });
+        });
+
+    });
+    </script>
+</body>
+</html>
